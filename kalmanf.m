@@ -1,3 +1,5 @@
+close all
+clear all
 % KALMANF - updates a system state vector estimate based upon an
 %           observation, using a discrete Kalman filter.
 %
@@ -156,20 +158,33 @@
 % if ~isfield(s,'R'); error('Observation covariance missing'); end
 % if ~isfield(s,'H'); s.H=eye(length(x)); end
 
-w= pi/8;
-t= 0:100;
-position= sin(w*t);
-velocity= w*cos(w*t);
-accel= -(w^2)*sin(w*t);
+load amp.mat
+
+amplitude = max(amp)
+
+omega= pi/8;
+time= 0:100;
+nstep = size(time,2);
+deltaT = 1.0
+offset = 5.0
+position= amplitude *sin(omega*time) + offset;
+velocity= omega*amplitude *cos(omega*time);
+accel= -(omega^2)*amplitude *sin(omega*time);
+
+% p_k = p_(k-1) + v_(k-1) \Delta T
+% v_k = v_(k-1) + a_(k-1) \Delta T
+%                                                
+% | p_k | = |     1                \Delta t  |   | p_(k-1) |
+% | v_k | = | -omega^2 \Delta t           1  |   | v_(k-1) |
+%                                                
 
 s.x= [position; velocity];
-s.A= [w^2, 0; 0, w^2];
+s.A= [ 1.0 , deltaT; -omega^2 * deltaT, 1.0 ];
 s.Q= [4, 0; 0, 4];
 s.P= [3, 0; 0, 2];
 s.R= 1;
 s.H= 1;
 
-load amp.mat
 s.z= amp;
 
 % if isnan(s.x)
@@ -183,9 +198,9 @@ s.z= amp;
    
    % This is the code which implements the discrete Kalman filter:
    
-   for i=1:101
+   for i=2:nstep
    % Prediction for state vector and covariance:
-   s.x(:,i)  = s.A*s.x(:,i) ; %+ s.B*s.u;
+   s.x(:,i)  = s.A*s.x(:,i-1) ; %+ s.B*s.u;
    s.P = s.A * s.P * s.A' + s.Q;
 
    % Compute Kalman gain factor:
@@ -203,7 +218,5 @@ s.z= amp;
    % how simple the discrete Kalman filter is to use.) Later,
    % we'll discuss how to deal with nonlinear systems.
    end 
+plot(time,amp,'r',time,s.x,'b',time,position,'k')
 
-
-
-  
