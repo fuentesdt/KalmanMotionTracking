@@ -183,7 +183,7 @@ s.A= [ 1.0 , deltaT; -omega^2 * deltaT, 1.0 ];
 s.Q= [4, 0; 0, 4];
 s.P= [3, 0; 0, 2];
 s.R= 1;
-s.H= 1;
+s.H= [1,0];
 
 s.z= amp;
 
@@ -207,6 +207,7 @@ s.z= amp;
    K = s.P*s.H'*inv(s.H*s.P*s.H'+s.R);
 
    % Correction based on observation:
+   modelDifference = s.z(i)-s.H*s.x(:,i)
    s.x(:,i) = s.x(:,i) + K*(s.z(i)-s.H*s.x(:,i));
    s.P = s.P - K*s.H*s.P;
    
@@ -218,5 +219,5 @@ s.z= amp;
    % how simple the discrete Kalman filter is to use.) Later,
    % we'll discuss how to deal with nonlinear systems.
    end 
-plot(time,amp,'r',time,s.x,'b',time,position,'k')
+plot(time,amp,'r',time,s.x(1,:),'b',time,position,'k')
 
